@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Punch-In/Punch-Out System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e063);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+        }
+        .btn-warning {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: scale(1.02);
+        }
+        .password-strength {
+            height: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            border-radius: 15px;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .system-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .permission-badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        .attendance-record {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 350px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .permission-item {
+            margin-bottom: 8px;
+        }
+        .permission-check {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container-fluid py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="login-container p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-clock fa-4x text-primary mb-3"></i>
+                        <h2 class="fw-bold">Portal Attendance</h2>
+                        <p class="text-muted">DD test web</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label class="form-label">User ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="userId" placeholder="enter your user ID" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" placeholder="enter your password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label">Remember me</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </button>
+                        
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none" id="forgotPassword">Forgot Password?</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="container-fluid py-4 d-none">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-2">
+                <div class="sidebar p-4">
+                    <div class="text-center mb-4">
+                        <div class="user-avatar mx-auto mb-3">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h5 id="userFullName">Welcome, Admin</h5>
+                        <span class="badge bg-light text-dark" id="userRole">Head of IT Development</span>
+                    </div>
+                    
+                    <div class="system-info">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="fas fa-calendar-alt me-2"></i> Date:</span>
+                            <span id="currentDate">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="fas fa-clock me-2"></i> Time:</span>
+                            <span id="currentTime">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-globe me-2"></i> IP:</span>
+                            <span id="userIP">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="#" data-section="punch">
+                            <i class="fas fa-clock me-2"></i> Punch In/Out
+                        </a>
+                        <a class="nav-link" href="#" data-section="attendance">
+                            <i class="fas fa-calendar-check me-2"></i> Attendance
+                        </a>
+                        <a class="nav-link" href="#" data-section="users">
+                            <i class="fas fa-users me-2"></i> Manage Users
+                        </a>
+                        <a class="nav-link" href="#" data-section="reports">
+                            <i class="fas fa-chart-bar me-2"></i> Reports
+                        </a>
+                        <a class="nav-link" href="#" data-section="settings">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                    </nav>
+                    
+                    <div class="mt-5 text-center">
+                        <button class="btn btn-danger w-100" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-10">
+                <div class="dashboard-container p-4">
+                    <!-- Dashboard Section -->
+                    <div id="dashboardSection" class="content-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3><i class="fas fa-tachometer-alt me-2"></i> Dashboard</h3>
+                            <div class="position-relative">
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                                <span class="notification-badge">3</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card p-4 text-center">
+                                    <i class="fas fa-users feature-icon"></i>
+                                    <h4>12</h4>
+                                    <p class="text-muted mb-0">Total Employees</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card p-4 text-center">
+                                    <i class="fas fa-user-clock feature-icon"></i>
+                                    <h4>8</h4>
+                                    <p class="text-muted mb-0">Currently In</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card p-4 text-center">
+                                    <i class="fas fa-calendar-check feature-icon"></i>
+                                    <h4>95%</h4>
+                                    <p class="text-muted mb-0">Attendance Rate</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card p-4 text-center">
+                                    <i class="fas fa-exclamation-triangle feature-icon"></i>
+                                    <h4>2</h4>
+                                    <p class="text-muted mb-0">Pending Approvals</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card p-4">
+                                    <h5 class="mb-3"><i class="fas fa-clock me-2"></i> Recent Activity</h5>
+                                    <div class="activity-log">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-success rounded-circle p-2 me-3">
+                                                <i class="fas fa-sign-in-alt text-white"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0">John Smith (0002) punched in</p>
+                                                <small class="text-muted">Today, 08:32 AM</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-danger rounded-circle p-2 me-3">
+                                                <i class="fas fa-sign-out-alt text-white"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0">Sarah Johnson (0003) punched out</p>
+                                                <small class="text-muted">Today, 05:45 PM</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning rounded-circle p-2 me-3">
+                                                <i class="fas fa-edit text-white"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0">Mike Brown (0004) edited attendance</p>
+                                                <small class="text-muted">Today, 03:12 PM</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-info rounded-circle p-2 me-3">
+                                                <i class="fas fa-user-plus text-white"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0">New employee added: Lisa Davis (0005)</p>
+                                                <small class="text-muted">Yesterday, 11:20 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card p-4">
+                                    <h5 class="mb-3"><i class="fas fa-exclamation-circle me-2"></i> System Alerts</h5>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Attention:</strong> Employee 0002 needs attendance approval for yesterday.
+                                    </div>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Notice:</strong> System maintenance scheduled for tomorrow at 10 PM.
+                                    </div>
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <strong>Success:</strong> Payroll integration completed successfully.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Punch In/Out Section -->
+                    <div id="punchSection" class="content-section d-none">
+                        <h3 class="mb-4"><i class="fas fa-clock me-2"></i> Punch In/Out</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card p-4 text-center">
+                                    <h4 class="mb-3">Punch Status</h4>
+                                    <div class="mb-4">
+                                        <span class="status-badge bg-success text-white">Currently In</span>
+                                    </div>
+                                    <p class="mb-1">Punched In: <strong>08:32 AM</strong></p>
+                                    <p class="mb-1">Working Hours: <strong>9h 13m</strong></p>
+                                    <p class="mb-4">Last Activity: <strong>10:45 AM</strong></p>
+                                    <button class="btn btn-danger btn-lg">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Punch Out
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card p-4">
+                                    <h4 class="mb-3">Quick Actions</h4>
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <button class="btn btn-outline-primary w-100">
+                                                <i class="fas fa-coffee me-2"></i> Break Start
+                                            </button>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <button class="btn btn-outline-warning w-100">
+                                                <i class="fas fa-coffee me-2"></i> Break End
+                                            </button>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <button class="btn btn-outline-success w-100">
+                                                <i class="fas fa-edit me-2"></i> Edit Time
+                                            </button>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <button class="btn btn-outline-info w-100">
+                                                <i class="fas fa-file-alt me-2"></i> Add Note
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manage Users Section -->
+                    <div id="usersSection" class="content-section d-none">
+                        <h3 class="mb-4"><i class="fas fa-users me-2"></i> Manage Users</h3>
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">User Management</h5>
+                                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                        <i class="fas fa-plus me-2"></i> Add User
+                                    </button>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>User ID</th>
+                                                <th>Name</th>
+                                                <th>Role</th>
+                                                <th>Department</th>
+                                                <th>Email</th>
+                                                <th>Permissions</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>0001</td>
+                                                <td>Danial Danish</td>
+                                                <td><span class="badge bg-primary">Head of IT</span></td>
+                                                <td>IT Department</td>
+                                                <td>danial.danish@company.com</td>
+                                                <td>
+                                                    <span class="badge bg-success permission-badge">Admin</span>
+                                                    <span class="badge bg-info permission-badge">Manage Users</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning me-1 edit-user-btn" data-user-id="0001">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-user-btn" data-user-id="0001">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>0002</td>
+                                                <td>Sarah Johnson</td>
+                                                <td><span class="badge bg-secondary">Manager</span></td>
+                                                <td>HR Department</td>
+                                                <td>sarah.johnson@company.com</td>
+                                                <td>
+                                                    <span class="badge bg-success permission-badge">Admin</span>
+                                                    <span class="badge bg-warning permission-badge">Amend Attendance</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning me-1 edit-user-btn" data-user-id="0002">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-user-btn" data-user-id="0002">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>0003</td>
+                                                <td>Mike Brown</td>
+                                                <td><span class="badge bg-secondary">Manager</span></td>
+                                                <td>Finance</td>
+                                                <td>mike.brown@company.com</td>
+                                                <td>
+                                                    <span class="badge bg-info permission-badge">View Reports</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning me-1 edit-user-btn" data-user-id="0003">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-user-btn" data-user-id="0003">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>0004</td>
+                                                <td>Lisa Davis</td>
+                                                <td><span class="badge bg-info">Crew Member</span></td>
+                                                <td>Operations</td>
+                                                <td>lisa.davis@company.com</td>
+                                                <td>
+                                                    <span class="badge bg-primary permission-badge">Punch In/Out</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning me-1 edit-user-btn" data-user-id="0004">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-user-btn" data-user-id="0004">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Other sections would be implemented similarly -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">User ID</label>
+                            <input type="text" class="form-control" placeholder="Enter User ID (e.g., 0000)">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" placeholder="Enter full name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" placeholder="Enter email address">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select">
+                                <option>Crew Member</option>
+                                <option>Manager</option>
+                                <option>Head of IT</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <select class="form-select">
+                                <option>Operations</option>
+                                <option>HR Department</option>
+                                <option>Finance</option>
+                                <option>IT Department</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Permissions</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="permPunch">
+                                <label class="form-check-label" for="permPunch">Punch In/Out</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="permView">
+                                <label class="form-check-label" for="permView">View Reports</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="permManage">
+                                <label class="form-check-label" for="permManage">Manage Users</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="permAmend">
+                                <label class="form-check-label" for="permAmend">Amend Attendance</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveUserBtn">Add User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="mb-3">
+                            <label class="form-label">User ID</label>
+                            <input type="text" class="form-control" id="editUserIdField" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="editUserName">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editUserEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" id="editUserRole">
+                                <option>Crew Member</option>
+                                <option>Manager</option>
+                                <option>Head of IT</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <select class="form-select" id="editUserDepartment">
+                                <option>Operations</option>
+                                <option>HR Department</option>
+                                <option>Finance</option>
+                                <option>IT Department</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Permissions</label>
+                            <div class="permission-item">
+                                <input class="form-check-input permission-check" type="checkbox" id="editPermPunch">
+                                <label class="form-check-label" for="editPermPunch">Punch In/Out</label>
+                            </div>
+                            <div class="permission-item">
+                                <input class="form-check-input permission-check" type="checkbox" id="editPermView">
+                                <label class="form-check-label" for="editPermView">View Reports</label>
+                            </div>
+                            <div class="permission-item">
+                                <input class="form-check-input permission-check" type="checkbox" id="editPermManage">
+                                <label class="form-check-label" for="editPermManage">Manage Users</label>
+                            </div>
+                            <div class="permission-item">
+                                <input class="form-check-input permission-check" type="checkbox" id="editPermAmend">
+                                <label class="form-check-label" for="editPermAmend">Amend Attendance</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="updateUserBtn">Update User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                    <p><strong>User ID:</strong> <span id="deleteUserId"></span></p>
+                    <p><strong>Name:</strong> <span id="deleteUserName"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+    <script>
+        // User data (simulated database)
+        const users = [
+            { id: '0001', name: 'Danial Danish', role: 'Head of IT Development', department: 'IT Department', email: 'danial.danish@company.com', password: 'Dd123' },
+            { id: '0002', name: 'Sarah Johnson', role: 'Manager', department: 'HR Department', email: 'sarah.johnson@company.com', password: 'password456' },
+            { id: '0003', name: 'Mike Brown', role: 'Manager', department: 'Finance', email: 'mike.brown@company.com', password: 'mikepass789' },
+            { id: '0004', name: 'Lisa Davis', role: 'Crew Member', department: 'Operations', email: 'lisa.davis@company.com', password: 'lisapass321' }
+        ];
+
+        // Activity log
+        let activityLog = [
+            { action: 'Login', user: 'Danial Danish (0001)', time: '2023-11-15 08:30:45', ip: '192.168.1.105' },
+            { action: 'Punch In', user: 'Sarah Johnson (0002)', time: '2023-11-15 08:32:12', ip: '192.168.1.106' },
+            { action: 'Punch Out', user: 'Mike Brown (0003)', time: '2023-11-14 17:45:30', ip: '192.168.1.107' }
+        ];
+
+        // Current user
+        let currentUser = null;
+        let userToDelete = null;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const loginForm = document.getElementById('loginForm');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentSections = document.querySelectorAll('.content-section');
+        const saveUserBtn = document.getElementById('saveUserBtn');
+        const userFullName = document.getElementById('userFullName');
+        const userRole = document.getElementById('userRole');
+        const currentDate = document.getElementById('currentDate');
+        const currentTime = document.getElementById('currentTime');
+        const userIP = document.getElementById('userIP');
+        const editUserBtns = document.querySelectorAll('.edit-user-btn');
+        const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
+        const updateUserBtn = document.getElementById('updateUserBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        // Update system info
+        function updateSystemInfo() {
+            const now = new Date();
+            currentDate.textContent = now.toLocaleDateString();
+            currentTime.textContent = now.toLocaleTimeString();
+            
+            // Simulate IP address
+            userIP.textContent = '192.168.1.' + (100 + Math.floor(Math.random() * 50));
+        }
+
+        // Initialize system info
+        updateSystemInfo();
+        setInterval(updateSystemInfo, 1000);
+
+        // Toggle password visibility
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            const password = passwordInput.value;
+
+            const user = users.find(u => u.id === userId);
+            
+            if (user && user.password === password) {
+                currentUser = user;
+                loginScreen.classList.add('d-none');
+                dashboardScreen.classList.remove('d-none');
+                userFullName.textContent = `Welcome, ${user.name}`;
+                userRole.textContent = user.role;
+                
+                // Log activity
+                logActivity('Login', `${user.name} (${user.id})`, userIP.textContent);
+                
+                // Show notification
+                showNotification('Login successful', 'Welcome to the Punch-In/Punch-Out System', 'success');
+            } else {
+                showNotification('Login failed', 'Invalid User ID or password', 'danger');
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            logActivity('Logout', `${currentUser.name} (${currentUser.id})`, userIP.textContent);
+            currentUser = null;
+            dashboardScreen.classList.add('d-none');
+            loginScreen.classList.remove('d-none');
+            loginForm.reset();
+            showNotification('Logged out', 'You have been successfully logged out', 'info');
+        });
+
+        // Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active state
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show corresponding section
+                const section = link.getAttribute('data-section');
+                contentSections.forEach(s => s.classList.add('d-none'));
+                document.getElementById(section + 'Section').classList.remove('d-none');
+            });
+        });
+
+        // Add new user
+        saveUserBtn.addEventListener('click', () => {
+            if (currentUser && currentUser.id === '0001') {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                modal.hide();
+                
+                logActivity('User Added', 'New user added by admin', userIP.textContent);
+                showNotification('User Added', 'New user has been successfully added', 'success');
+            } else {
+                showNotification('Access Denied', 'Only Head of IT Development can add users', 'danger');
+            }
+        });
+
+        // Edit user functionality
+        editUserBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentUser && currentUser.id === '0001') {
+                    const userId = btn.getAttribute('data-user-id');
+                    const user = users.find(u => u.id === userId);
+                    
+                    if (user) {
+                        // Populate edit form
+                        document.getElementById('editUserId').value = user.id;
+                        document.getElementById('editUserIdField').value = user.id;
+                        document.getElementById('editUserName').value = user.name;
+                        document.getElementById('editUserEmail').value = user.email;
+                        document.getElementById('editUserRole').value = user.role === 'Head of IT Development' ? 'Head of IT' : user.role;
+                        document.getElementById('editUserDepartment').value = user.department;
+                        
+                        // Set permissions based on user role
+                        document.getElementById('editPermPunch').checked = true; // All users can punch in/out
+                        document.getElementById('editPermView').checked = user.role === 'Head of IT Development' || user.role === 'Manager';
+                        document.getElementById('editPermManage').checked = user.role === 'Head of IT Development';
+                        document.getElementById('editPermAmend').checked = user.role === 'Manager';
+                        
+                        // Show edit modal
+                        const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                        editModal.show();
+                    }
+                } else {
+                    showNotification('Access Denied', 'Only Head of IT Development can edit users', 'danger');
+                }
+            });
+        });
+
+        // Update user
+        updateUserBtn.addEventListener('click', () => {
+            if (currentUser && currentUser.id === '0001') {
+                const userId = document.getElementById('editUserId').value;
+                const userIndex = users.findIndex(u => u.id === userId);
+                
+                if (userIndex !== -1) {
+                    // Update user data
+                    users[userIndex].name = document.getElementById('editUserName').value;
+                    users[userIndex].email = document.getElementById('editUserEmail').value;
+                    users[userIndex].role = document.getElementById('editUserRole').value;
+                    users[userIndex].department = document.getElementById('editUserDepartment').value;
+                    
+                    // Update permissions
+                    users[userIndex].permissions = {
+                        punch: true, // All users can punch in/out
+                        view: document.getElementById('editPermView').checked,
+                        manage: document.getElementById('editPermManage').checked,
+                        amend: document.getElementById('editPermAmend').checked
+                    };
+                    
+                    // Log activity
+                    logActivity('User Updated', `${users[userIndex].name} (${userId})`, userIP.textContent);
+                    
+                    // Close modal
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                    editModal.hide();
+                    
+                    // Show notification
+                    showNotification('User Updated', 'User information has been successfully updated', 'success');
+                    
+                    // Refresh user table (in a real app, this would update the UI)
+                    showNotification('Data Refresh', 'User table will be refreshed in a real application', 'info');
+                }
+            } else {
+                showNotification('Access Denied', 'Only Head of IT Development can update users', 'danger');
+            }
+        });
+
+        // Delete user functionality
+        deleteUserBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentUser && currentUser.id === '0001') {
+                    const userId = btn.getAttribute('data-user-id');
+                    const user = users.find(u => u.id === userId);
+                    
+                    if (user) {
+                        // Set user to delete
+                        userToDelete = user;
+                        
+                        // Populate delete confirmation
+                        document.getElementById('deleteUserId').textContent = user.id;
+                        document.getElementById('deleteUserName').textContent = user.name;
+                        
+                        // Show delete confirmation modal
+                        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                        deleteModal.show();
+                    }
+                } else {
+                    showNotification('Access Denied', 'Only Head of IT Development can delete users', 'danger');
+                }
+            });
+        });
+
+        // Confirm delete user
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (currentUser && currentUser.id === '0001' && userToDelete) {
+                // Remove user from array (in a real app, this would update the database)
+                const userIndex = users.findIndex(u => u.id === userToDelete.id);
+                if (userIndex !== -1) {
+                    users.splice(userIndex, 1);
+                    
+                    // Log activity
+                    logActivity('User Deleted', `${userToDelete.name} (${userToDelete.id})`, userIP.textContent);
+                    
+                    // Close modal
+                    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+                    deleteModal.hide();
+                    
+                    // Show notification
+                    showNotification('User Deleted', 'User has been successfully removed', 'success');
+                    
+                    // Reset user to delete
+                    userToDelete = null;
+                    
+                    // Refresh user table (in a real app, this would update the UI)
+                    showNotification('Data Refresh', 'User table will be refreshed in a real application', 'info');
+                }
+            } else {
+                showNotification('Access Denied', 'Only Head of IT Development can delete users', 'danger');
+            }
+        });
+
+        // Log activity
+        function logActivity(action, details, ip) {
+            const now = new Date();
+            const logEntry = {
+                action,
+                user: details,
+                time: now.toLocaleString(),
+                ip
+            };
+            activityLog.unshift(logEntry);
+            
+            // Keep log size manageable
+            if (activityLog.length > 50) {
+                activityLog.pop();
+            }
+        }
+
+        // Show notification
+        function showNotification(title, message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.style.maxWidth = '300px';
+            
+            notification.innerHTML = `
+                <strong>${title}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Forgot password
+        document.getElementById('forgotPassword').addEventListener('click', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            
+            if (userId) {
+                const user = users.find(u => u.id === userId);
+                if (user) {
+                    logActivity('Password Reset Request', `Reset requested for ${user.name} (${user.id})`, userIP.textContent);
+                    showNotification('Password Reset', `Password reset instructions sent to ${user.email}`, 'info');
+                } else {
+                    showNotification('User Not Found', 'No user found with that ID', 'warning');
+                }
+            } else {
+                showNotification('Enter User ID', 'Please enter your User ID first', 'warning');
+            }
+        });
+
+        // Initialize the application
+        function initApp() {
+            console.log('Punch-In/Punch-Out System initialized');
+            console.log('Current users:', users);
+            
+            // Add event listeners for modals
+            const editUserModal = document.getElementById('editUserModal');
+            editUserModal.addEventListener('hidden.bs.modal', () => {
+                document.getElementById('editUserForm').reset();
+            });
+        }
+
+        // Run initialization
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
